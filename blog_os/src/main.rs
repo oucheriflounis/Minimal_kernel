@@ -5,11 +5,18 @@
 #![reexport_test_harness_main = "test_main"]
 
 use blog_os::println;
+use blog_os::fat32::{Fat32, MemoryDisk};
 use core::panic::PanicInfo;
 
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub extern "C" fn _start() -> ! {
     println!("Hello World{}", "!");
+
+    let disk = MemoryDisk::new();
+    match Fat32::new(disk) {
+        Ok(fs) => println!("FAT32 root cluster {}", fs.boot_sector().root_cluster),
+        Err(_) => println!("FAT32 init failed"),
+    }
 
     #[cfg(test)]
     test_main();

@@ -34,6 +34,7 @@ pub mod serial;
 pub mod vga_buffer;
 #[cfg(feature = "alloc")]
 pub mod allocator;
+pub mod fat32;
 
 /// Trait étendant les tests pour permettre l'affichage de leur nom.
 pub trait Testable {

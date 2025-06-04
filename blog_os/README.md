@@ -18,7 +18,7 @@ Un mini‑kernel bare‑metal en Rust **`no_std`**, basé sur le tutoriel “Wri
 ├── Cargo.lock
 ├── Cargo.toml
 ├── README.md
-├── rapport.md
+├── Global Allocator Project Report.markdown
 ├── src
 │   ├── allocator.rs
 │   ├── lib.rs
@@ -116,7 +116,7 @@ runner = "bootimage runner"
 
 ## Conception de l’allocateur
 
-Voir [rapport.md](https://chatgpt.com/c/rapport.md) pour :
+Voir `Global Allocator Project Report.markdown` pour :
 
 -   découpage du heap en 4 slabs (16–128 o)
     
