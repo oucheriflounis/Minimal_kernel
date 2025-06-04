@@ -1,0 +1,28 @@
+#![no_std]
+#![no_main]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
+extern crate blog_os;
+
+use core::panic::PanicInfo;
+use alloc::boxed::Box;
+use blog_os::{exit_qemu, QemuExitCode};
+
+#[cfg(feature = "oom_integration")]
+#[alloc_error_handler]
+fn on_oom(_layout: alloc::alloc::Layout) -> ! {
+    exit_qemu(QemuExitCode::Success);
+}
+
+#[panic_handler]
+fn panic(_: &PanicInfo) -> ! {
+    exit_qemu(QemuExitCode::Failed);
+}
+
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+    let _buf: Box<[u8; 1024]> = Box::new([0; 1024]);
+    exit_qemu(QemuExitCode::Failed);
+}
+

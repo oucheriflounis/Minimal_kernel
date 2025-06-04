@@ -1,0 +1,15 @@
+# Rust/Cargo
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# bootimage
+**/bootimage-*.bin
+
+# Éditeurs & OS
+*.swp
+*~
+.idea/
+.vscode/
+.DS_Store
+EOF
