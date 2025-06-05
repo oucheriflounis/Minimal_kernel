@@ -36,6 +36,10 @@ pub mod vga_buffer;
 pub mod allocator;
 pub mod fat32;
 
+#[cfg(feature = "alloc")]
+#[global_allocator]
+static ALLOCATOR: allocator::SimpleAllocator = allocator::SimpleAllocator::new();
+
 /// Trait étendant les tests pour permettre l'affichage de leur nom.
 pub trait Testable {
     fn run(&self);
