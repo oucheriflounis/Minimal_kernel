@@ -23,3 +23,10 @@ fn panic(info: &PanicInfo) -> ! {
 fn test_println() {
     println!("test_println output");
 }
+
+#[cfg(feature = "alloc")]
+#[test_case]
+fn basic_allocator_test() {
+    let value = Box::new(123_u32);
+    assert_eq!(*value, 123);
+}
