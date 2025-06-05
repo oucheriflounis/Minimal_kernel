@@ -100,17 +100,17 @@ impl Slab {
 ///
 /// Implémente le trait `GlobalAlloc` pour prendre en charge les allocations
 /// et libérations via la macro `#[global_allocator]`.
-pub struct SlabAllocator {
+pub struct SimpleAllocator {
     slabs: [Mutex<Slab>; N_SLABS],
 }
 
-unsafe impl Sync for SlabAllocator {}
-unsafe impl Send for SlabAllocator {}
+unsafe impl Sync for SimpleAllocator {}
+unsafe impl Send for SimpleAllocator {}
 
-impl SlabAllocator {
+impl SimpleAllocator {
     /// Construit un allocateur avec tous les slabs initialement non configurés.
     pub const fn new() -> Self {
-        SlabAllocator {
+        SimpleAllocator {
             slabs: [
                 Mutex::new(Slab::uninit(SLAB_SIZES[0])),
                 Mutex::new(Slab::uninit(SLAB_SIZES[1])),
@@ -121,12 +121,7 @@ impl SlabAllocator {
     }
 }
 
-/// Désigne `ALLOCATOR` comme allocateur global quand la feature `alloc` est active.
-#[cfg(feature = "alloc")]
-#[global_allocator]
-static ALLOCATOR: SlabAllocator = SlabAllocator::new();
-
-unsafe impl GlobalAlloc for SlabAllocator {
+unsafe impl GlobalAlloc for SimpleAllocator {
     /// Alloue un bloc de mémoire correspondant à `layout`.
     ///
     /// # Safety

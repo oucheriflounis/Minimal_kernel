@@ -12,6 +12,16 @@ name = "oom"
 path = "tests/oom.rs"
 harness = false
 
+[[test]]
+name = "basic_boot"
+path = "tests/basic_boot.rs"
+harness = false
+
+[[test]]
+name = "fat32"
+path = "tests/fat32.rs"
+harness = false
+
 [dependencies]
 bootloader   = "0.9"
 volatile     = "0.2.6"
