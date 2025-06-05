@@ -8,6 +8,8 @@ extern crate alloc;
 
 #[cfg(feature = "alloc")]
 use alloc::{string::String, vec::Vec};
+#[cfg(feature = "alloc")]
+use alloc::{format, vec};
 
 #[derive(Debug, Clone, Copy)]
 pub struct BootSector {
@@ -107,6 +109,7 @@ impl<D: BlockDevice> Fat32<D> {
         buf[..512].copy_from_slice(&tmp);
     }
 
+    #[cfg(feature = "alloc")]
     fn read_cluster_chain(&mut self, start: u32) -> Result<Vec<u8>, ()> {
         if start < 2 {
             panic!("invalid cluster {}", start);
@@ -130,6 +133,7 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(data)
     }
 
+    #[cfg(feature = "alloc")]
     pub fn read_root_directory(&mut self) -> Result<Vec<DirectoryEntry>, ()> {
         let data = self.read_cluster_chain(self.boot_sector.root_cluster)?;
         let mut entries = Vec::new();
@@ -150,6 +154,7 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(entries)
     }
 
+    #[cfg(feature = "alloc")]
     pub fn open_file(&mut self, entry: &DirectoryEntry) -> Result<Vec<u8>, ()> {
         let mut data = self.read_cluster_chain(entry.first_cluster)?;
         data.truncate(entry.size as usize);
