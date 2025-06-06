@@ -4,6 +4,8 @@
 #![test_runner(blog_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate blog_os;
+
 use blog_os::println;
 use core::panic::PanicInfo;
 

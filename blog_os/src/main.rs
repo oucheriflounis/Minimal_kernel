@@ -6,6 +6,7 @@
 
 use blog_os::println;
 use blog_os::fat32::{Fat32, MemoryDisk};
+use blog_os::fat32_checks;
 use core::panic::PanicInfo;
 
 #[no_mangle]
@@ -14,7 +15,10 @@ pub extern "C" fn _start() -> ! {
 
     let disk = MemoryDisk::new();
     match Fat32::new(disk) {
-        Ok(fs) => println!("FAT32 root cluster {}", fs.boot_sector().root_cluster),
+        Ok(fs) => {
+            println!("FAT32 root cluster {}", fs.boot_sector().root_cluster);
+            fat32_checks(fs);
+        }
         Err(_) => println!("FAT32 init failed"),
     }
 

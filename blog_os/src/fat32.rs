@@ -72,21 +72,21 @@ impl<D: BlockDevice> Fat32<D> {
         &self.boot_sector
     }
 
-    fn cluster_size(&self) -> usize {
+    pub fn cluster_size(&self) -> usize {
         self.boot_sector.bytes_per_sector as usize
             * self.boot_sector.sectors_per_cluster as usize
     }
 
-    fn first_data_sector(&self) -> u32 {
+    pub fn first_data_sector(&self) -> u32 {
         self.boot_sector.reserved_sectors as u32
             + self.boot_sector.fats as u32 * self.boot_sector.sectors_per_fat
     }
 
-    fn cluster_to_lba(&self, cluster: u32) -> u32 {
+    pub fn cluster_to_lba(&self, cluster: u32) -> u32 {
         self.first_data_sector() + (cluster - 2) * self.boot_sector.sectors_per_cluster as u32
     }
 
-    fn read_fat_entry(&mut self, cluster: u32) -> u32 {
+    pub fn read_fat_entry(&mut self, cluster: u32) -> u32 {
         let fat_start = self.boot_sector.reserved_sectors as u32;
         let offset = cluster * 4;
         let sector = fat_start + (offset / 512);
@@ -102,7 +102,7 @@ impl<D: BlockDevice> Fat32<D> {
         entry & 0x0FFF_FFFF
     }
 
-    fn read_cluster(&mut self, cluster: u32, buf: &mut [u8]) {
+    pub fn read_cluster(&mut self, cluster: u32, buf: &mut [u8]) {
         let lba = self.cluster_to_lba(cluster);
         let mut tmp = [0u8; 512];
         self.device.read_sector(lba, &mut tmp);

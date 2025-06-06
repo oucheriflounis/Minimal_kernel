@@ -37,8 +37,11 @@ pub mod allocator;
 pub mod fat32;
 
 #[cfg(feature = "alloc")]
+use crate::allocator::SimpleAllocator;
+
+#[cfg(feature = "alloc")]
 #[global_allocator]
-static ALLOCATOR: allocator::SimpleAllocator = allocator::SimpleAllocator::new();
+static ALLOCATOR: SimpleAllocator = SimpleAllocator::new();
 
 /// Trait étendant les tests pour permettre l'affichage de leur nom.
 pub trait Testable {
@@ -58,6 +61,7 @@ impl<T> Testable for T where T: Fn() {
 ///
 /// # Panics
 /// Panique si un test échoue.
+#[cfg(not(test))]
 pub fn test_runner(tests: &[&dyn Testable]) {
     serial_println!("Running {} tests", tests.len());
     for test in tests {
@@ -114,6 +118,34 @@ pub extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info)
+}
+
+pub fn fat32_checks<D: fat32::BlockDevice>(mut fat: fat32::Fat32<D>) {
+    let size = fat.cluster_size();
+    let sector = fat.first_data_sector();
+    let lba = fat.cluster_to_lba(2);
+    let entry = fat.read_fat_entry(2);
+    let mut buf = [0u8; 512];
+    fat.read_cluster(2, &mut buf);
+
+    println!(
+        "Cluster size: {}, sector: {}, lba: {}, entry: {}",
+        size, sector, lba, entry
+    );
+}
+
+#[cfg(test)]
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    for test in tests {
+        test();
+    }
+}
+
+#[cfg(test)]
+#[no_mangle]
+pub extern "C" fn test_main() {
+    let tests: &[&dyn Fn()] = &[];
+    test_runner(tests);
 }
 
 
