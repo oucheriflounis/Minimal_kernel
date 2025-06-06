@@ -70,6 +70,20 @@ pub fn test_runner(tests: &[&dyn Testable]) {
     exit_qemu(QemuExitCode::Success);
 }
 
+#[cfg(test)]
+pub fn test_runner(tests: &[&dyn Fn()]) {
+    for test in tests {
+        test();
+    }
+}
+
+#[cfg(test)]
+#[no_mangle]
+pub extern "C" fn test_main() {
+    let tests: &[&dyn Fn()] = &[];
+    test_runner(tests);
+}
+
 pub fn test_panic_handler(info: &PanicInfo) -> ! {
     serial_println!("[failed]\n");
     serial_println!("Error: {}\n", info);
