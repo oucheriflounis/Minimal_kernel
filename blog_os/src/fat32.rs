@@ -3,12 +3,9 @@ pub trait BlockDevice {
     fn write_sector(&mut self, lba: u32, buf: &[u8; 512]);
 }
 
-#[cfg(feature = "alloc")]
 extern crate alloc;
 
-#[cfg(feature = "alloc")]
 use alloc::{string::String, vec::Vec};
-#[cfg(feature = "alloc")]
 use alloc::{format, vec};
 
 #[derive(Debug, Clone, Copy)]
@@ -21,7 +18,7 @@ pub struct BootSector {
     pub root_cluster: u32,
 }
 
-#[cfg_attr(feature = "alloc", derive(Debug, Clone))]
+#[derive(Debug, Clone)]
 pub struct DirectoryEntry {
     pub name: [u8; 11],
     pub attr: u8,
@@ -29,7 +26,6 @@ pub struct DirectoryEntry {
     pub size: u32,
 }
 
-#[cfg(feature = "alloc")]
 impl DirectoryEntry {
     pub fn filename(&self) -> String {
         let name = core::str::from_utf8(&self.name[..8]).unwrap().trim_end();
@@ -109,7 +105,6 @@ impl<D: BlockDevice> Fat32<D> {
         buf[..512].copy_from_slice(&tmp);
     }
 
-    #[cfg(feature = "alloc")]
     fn read_cluster_chain(&mut self, start: u32) -> Result<Vec<u8>, ()> {
         if start < 2 {
             panic!("invalid cluster {}", start);
@@ -133,7 +128,6 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(data)
     }
 
-    #[cfg(feature = "alloc")]
     pub fn read_root_directory(&mut self) -> Result<Vec<DirectoryEntry>, ()> {
         let data = self.read_cluster_chain(self.boot_sector.root_cluster)?;
         let mut entries = Vec::new();
@@ -154,7 +148,6 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(entries)
     }
 
-    #[cfg(feature = "alloc")]
     pub fn open_file(&mut self, entry: &DirectoryEntry) -> Result<Vec<u8>, ()> {
         let mut data = self.read_cluster_chain(entry.first_cluster)?;
         data.truncate(entry.size as usize);

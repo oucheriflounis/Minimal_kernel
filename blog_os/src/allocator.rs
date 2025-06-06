@@ -4,8 +4,6 @@
 //! optimisé pour l'allocation fréquente de petits objets. Chaque slab gère
 //! des blocs de même taille, améliorant la rapidité et réduisant la fragmentation.
 
-#![cfg(feature = "alloc")]
-
 extern crate alloc;
 
 use core::alloc::{GlobalAlloc, Layout};
@@ -173,7 +171,7 @@ unsafe impl GlobalAlloc for SimpleAllocator {
 ///
 /// Panique en détaillant la `layout` requise.
 /// Désactivé si la feature `oom_integration` est activée.
-#[cfg(all(feature = "alloc", not(feature = "oom_integration")))]
+#[cfg(not(feature = "oom_integration"))]
 #[alloc_error_handler]
 fn on_oom(layout: Layout) -> ! {
     panic!("Out of memory: {:?}", layout);
