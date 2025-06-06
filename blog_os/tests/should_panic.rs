@@ -12,6 +12,12 @@ use blog_os::fat32::{Fat32, MemoryDisk, DirectoryEntry};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    test_main();
+    loop {}
+}
+
+#[test_case]
+fn invalid_cluster_panics() {
     serial_println!("should_panic::invalid_cluster...");
     let disk = MemoryDisk::new();
     let mut fs = Fat32::new(disk).expect("fs");
