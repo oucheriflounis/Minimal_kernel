@@ -1,5 +1,8 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(blog_os::test_runner)]
+#![reexport_test_harness_main = "test_main"]
 #![feature(alloc_error_handler)]
 
 extern crate alloc;
@@ -22,6 +25,12 @@ fn panic(_: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    test_main();
+    loop {}
+}
+
+#[test_case]
+fn test_oom() {
     let _buf: Box<[u8; 1024]> = Box::new([0; 1024]);
     exit_qemu(QemuExitCode::Failed);
 }
