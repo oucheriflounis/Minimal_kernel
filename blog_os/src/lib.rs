@@ -134,18 +134,4 @@ pub fn fat32_checks<D: fat32::BlockDevice>(mut fat: fat32::Fat32<D>) {
     );
 }
 
-#[cfg(test)]
-pub fn test_runner(tests: &[&dyn Fn()]) {
-    for test in tests {
-        test();
-    }
-}
-
-#[cfg(test)]
-#[no_mangle]
-pub extern "C" fn test_main() {
-    let tests: &[&dyn Fn()] = &[];
-    test_runner(tests);
-}
-
 
