@@ -13,15 +13,13 @@
 #![reexport_test_harness_main = "test_main"]
 
 // On active alloc_error_handler **seulement** si on n'est PAS en oom_integration.
-#![cfg_attr(all(feature = "alloc", not(feature = "oom_integration")), feature(alloc_error_handler))]
+#![cfg_attr(not(feature = "oom_integration"), feature(alloc_error_handler))]
 
-#[cfg(feature = "alloc")]
 extern crate alloc;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(feature = "alloc")]
     #[allow(unused_imports)]
     use alloc::{boxed::Box, vec::Vec};
 
@@ -32,14 +30,11 @@ use core::panic::PanicInfo;
 
 pub mod serial;
 pub mod vga_buffer;
-#[cfg(feature = "alloc")]
 pub mod allocator;
 pub mod fat32;
 
-#[cfg(feature = "alloc")]
 use crate::allocator::SimpleAllocator;
 
-#[cfg(feature = "alloc")]
 #[global_allocator]
 static ALLOCATOR: SimpleAllocator = SimpleAllocator::new();
 
