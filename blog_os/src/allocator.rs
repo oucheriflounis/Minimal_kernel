@@ -119,6 +119,14 @@ impl SimpleAllocator {
             ],
         }
     }
+
+    /// Initialise explicitement la zone de heap utilisée par l'allocateur.
+    ///
+    /// Cette implémentation conserve un heap statique interne, les paramètres
+    /// sont donc simplement ignorés pour compatibilité.
+    pub unsafe fn init(&self, _heap_start: usize, _heap_size: usize) {
+        // Le heap est statique, aucune action n’est nécessaire ici.
+    }
 }
 
 unsafe impl GlobalAlloc for SimpleAllocator {
