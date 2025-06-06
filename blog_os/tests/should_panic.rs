@@ -10,7 +10,13 @@ pub extern "C" fn _start() -> ! {
     serial_println!("should_panic::invalid_cluster...");
     let disk = MemoryDisk::new();
     let mut fs = Fat32::new(disk).expect("fs");
-    let entry = DirectoryEntry { name: *b"BADFILEBIN  ", attr: 0x20, first_cluster: 99, size: 1 };
+    // invalid file with cluster 99 to trigger panic
+    let entry = DirectoryEntry {
+        name: *b"BADFILE BIN", // 8.3 filename padded to 11 bytes
+        attr: 0x20,
+        first_cluster: 99,
+        size: 1,
+    };
     let _ = fs.open_file(&entry);
     serial_println!("[test did not panic]");
     exit_qemu(QemuExitCode::Failed);
