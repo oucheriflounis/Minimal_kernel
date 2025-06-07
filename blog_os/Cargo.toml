@@ -3,6 +3,16 @@ name = "blog_os"
 version = "0.1.0"
 edition = "2018"
 
+[lib]
+path = "src/lib.rs"
+bench = false
+
+[[bin]]
+name = "blog_os"
+path = "src/main.rs"
+test  = false
+bench = false
+
 [[test]]
 name = "should_panic"
 harness = false

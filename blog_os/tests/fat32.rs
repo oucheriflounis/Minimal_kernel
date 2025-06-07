@@ -2,14 +2,13 @@
 #![no_main]
 #![feature(custom_test_frameworks)]
 #![test_runner(blog_os::test_runner)]
-#![reexport_test_harness_main = "test_main"]
 
 extern crate blog_os;
 use core::panic::PanicInfo;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    test_main();
+    blog_os::test_main();
     loop {}
 }
 
