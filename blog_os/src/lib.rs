@@ -38,33 +38,6 @@ use crate::allocator::SimpleAllocator;
 #[global_allocator]
 static ALLOCATOR: SimpleAllocator = SimpleAllocator::new();
 
-/// Trait étendant les tests pour permettre l'affichage de leur nom.
-pub trait Testable {
-    fn run(&self);
-}
-
-impl<T> Testable for T where T: Fn() {
-    fn run(&self) {
-        serial_print!("{}...\t", core::any::type_name::<T>());
-        self();
-        serial_println!("[ok]");
-    }
-}
-
-
-/// Exécute tous les tests fournis et renvoie le code de sortie à QEMU.
-///
-/// # Panics
-/// Panique si un test échoue.
-#[cfg(not(test))]
-pub fn test_runner(tests: &[&dyn Testable]) {
-    serial_println!("Running {} tests", tests.len());
-    for test in tests {
-        test.run();
-    }
-    exit_qemu(QemuExitCode::Success);
-}
-
 #[cfg(test)]
 pub fn test_runner(tests: &[&dyn Fn()]) {
     for test in tests {
