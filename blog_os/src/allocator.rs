@@ -88,7 +88,7 @@ impl Slab {
     /// - `ptr` doit provenir d'un appel antérieur à `alloc` pour ce slab.
     /// - Appel protégé par un `Mutex` pour éviter les accès concurrents.
     unsafe fn dealloc(&mut self, ptr: *mut u8) {
-        let old_head = self.free_list.unwrap_or(null_mut());
+        let old_head = self.free_list.unwrap_or_default();
         (ptr as *mut *mut u8).write(old_head);
         self.free_list = Some(ptr);
     }
@@ -104,6 +104,12 @@ pub struct SimpleAllocator {
 
 unsafe impl Sync for SimpleAllocator {}
 unsafe impl Send for SimpleAllocator {}
+
+impl Default for SimpleAllocator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl SimpleAllocator {
     /// Construit un allocateur avec tous les slabs initialement non configurés.
@@ -122,6 +128,11 @@ impl SimpleAllocator {
     ///
     /// Cette implémentation conserve un heap statique interne, les paramètres
     /// sont donc simplement ignorés pour compatibilité.
+    ///
+    /// # Safety
+    /// Caller must guarantee that `heap_start..heap_start + heap_size`
+    /// is valid RAM and not used elsewhere. Call exactly once, before any
+    /// allocation occurs.
     pub unsafe fn init(&self, _heap_start: usize, _heap_size: usize) {
         // Le heap est statique, aucune action n’est nécessaire ici.
     }
