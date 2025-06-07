@@ -38,14 +38,12 @@ use crate::allocator::SimpleAllocator;
 static ALLOCATOR: SimpleAllocator = SimpleAllocator::new();
 
 /// Test runner global (doit être visible des tests d’intégration)
-#[cfg(test)]
 pub fn test_runner(tests: &[&dyn Fn()]) {
     for test in tests {
         test();
     }
 }
 
-#[cfg(test)]
 #[no_mangle]
 pub extern "C" fn test_main() {
     let tests: &[&dyn Fn()] = &[];
