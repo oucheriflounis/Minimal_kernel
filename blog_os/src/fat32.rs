@@ -26,6 +26,13 @@ pub struct DirectoryEntry {
     pub size: u32,
 }
 
+#[derive(Debug)]
+pub enum FatError {
+    InvalidCluster,
+    Io,
+    EndOfChain,
+}
+
 impl DirectoryEntry {
     pub fn filename(&self) -> String {
         let name = core::str::from_utf8(&self.name[..8]).unwrap().trim_end();
@@ -57,7 +64,7 @@ pub struct Fat32<D: BlockDevice> {
 }
 
 impl<D: BlockDevice> Fat32<D> {
-    pub fn new(mut device: D) -> Result<Self, ()> {
+    pub fn new(mut device: D) -> Result<Self, FatError> {
         let mut buf = [0u8; 512];
         device.read_sector(0, &mut buf);
         let boot_sector = BootSector::parse(&buf);
@@ -128,8 +135,10 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(data)
     }
 
-    pub fn read_root_directory(&mut self) -> Result<Vec<DirectoryEntry>, ()> {
-        let data = self.read_cluster_chain(self.boot_sector.root_cluster)?;
+    pub fn read_root_directory(&mut self) -> Result<Vec<DirectoryEntry>, FatError> {
+        let data = self
+            .read_cluster_chain(self.boot_sector.root_cluster)
+            .map_err(|_| FatError::Io)?;
         let mut entries = Vec::new();
         for chunk in data.chunks(32) {
             if chunk[0] == 0x00 { break; }
@@ -148,8 +157,10 @@ impl<D: BlockDevice> Fat32<D> {
         Ok(entries)
     }
 
-    pub fn open_file(&mut self, entry: &DirectoryEntry) -> Result<Vec<u8>, ()> {
-        let mut data = self.read_cluster_chain(entry.first_cluster)?;
+    pub fn open_file(&mut self, entry: &DirectoryEntry) -> Result<Vec<u8>, FatError> {
+        let mut data = self
+            .read_cluster_chain(entry.first_cluster)
+            .map_err(|_| FatError::Io)?;
         data.truncate(entry.size as usize);
         Ok(data)
     }
@@ -157,6 +168,12 @@ impl<D: BlockDevice> Fat32<D> {
 
 pub struct MemoryDisk {
     data: [u8; 4096],
+}
+
+impl Default for MemoryDisk {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MemoryDisk {

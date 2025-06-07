@@ -68,7 +68,9 @@ pub fn exit_qemu(exit_code: QemuExitCode) -> ! {
         let mut port = Port::new(0xf4);
         port.write(exit_code as u32);
     }
-    loop {}
+    loop {
+        core::hint::spin_loop();
+    }
 }
 
 /// Code de sortie utilisable pour QEMU.
@@ -91,7 +93,9 @@ pub enum QemuExitCode {
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     test_main();
-    loop {}
+    loop {
+        core::hint::spin_loop();
+    }
 }
 /// Gestionnaire de panique en mode test, renvoie un code d'échec.
 #[cfg(test)]
