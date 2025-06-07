@@ -37,7 +37,7 @@ use crate::allocator::SimpleAllocator;
 #[global_allocator]
 static ALLOCATOR: SimpleAllocator = SimpleAllocator::new();
 
-#[cfg(test)]
+/// Test runner global (doit être visible des tests d’intégration)
 pub fn test_runner(tests: &[&dyn Fn()]) {
     for test in tests {
         test();

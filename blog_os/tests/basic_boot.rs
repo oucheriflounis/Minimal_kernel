@@ -5,14 +5,11 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate blog_os;
-
 use core::panic::PanicInfo;
-use blog_os::println;
 
-#[no_mangle] // don't mangle the name of this function
+#[no_mangle]
 pub extern "C" fn _start() -> ! {
     test_main();
-
     loop {}
 }
 
@@ -20,6 +17,10 @@ pub extern "C" fn _start() -> ! {
 fn panic(info: &PanicInfo) -> ! {
     blog_os::test_panic_handler(info)
 }
+
+use blog_os::println;
+extern crate alloc;
+use alloc::boxed::Box;
 
 #[test_case]
 fn test_println() {
