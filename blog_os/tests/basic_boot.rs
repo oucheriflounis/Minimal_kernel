@@ -17,18 +17,17 @@ fn panic(info: &PanicInfo) -> ! {
     blog_os::test_panic_handler(info)
 }
 
-use blog_os::println;
+#[cfg(feature = "alloc")]
 extern crate alloc;
-use alloc::boxed::Box;
 
 #[test_case]
 fn test_println() {
-    println!("test_println output");
+    blog_os::println!("test_println output");
 }
 
 #[cfg(feature = "alloc")]
 #[test_case]
 fn basic_allocator_test() {
-    let value = Box::new(123_u32);
+    let value = alloc::boxed::Box::new(123_u32);
     assert_eq!(*value, 123);
 }

@@ -17,12 +17,11 @@ fn panic(info: &PanicInfo) -> ! {
     blog_os::test_panic_handler(info)
 }
 
-use blog_os::fat32::{Fat32, MemoryDisk};
 
 #[test_case]
 fn read_root_dir_test() {
-    let disk = MemoryDisk::new();
-    let mut fs = Fat32::new(disk).unwrap();
+    let disk = blog_os::fat32::MemoryDisk::new();
+    let mut fs = blog_os::fat32::Fat32::new(disk).unwrap();
     let entries = fs.read_root_directory().unwrap();
     assert_eq!(entries.len(), 1);
     assert_eq!(entries[0].filename(), "HELLO.TXT");
@@ -30,8 +29,8 @@ fn read_root_dir_test() {
 
 #[test_case]
 fn read_file_test() {
-    let disk = MemoryDisk::new();
-    let mut fs = Fat32::new(disk).unwrap();
+    let disk = blog_os::fat32::MemoryDisk::new();
+    let mut fs = blog_os::fat32::Fat32::new(disk).unwrap();
     let entries = fs.read_root_directory().unwrap();
     let data = fs.open_file(&entries[0]).unwrap();
     assert_eq!(core::str::from_utf8(&data).unwrap(), "Hello");

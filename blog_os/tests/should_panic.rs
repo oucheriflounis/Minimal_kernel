@@ -17,22 +17,20 @@ fn panic(info: &PanicInfo) -> ! {
     blog_os::test_panic_handler(info)
 }
 
-use blog_os::{exit_qemu, serial_println, QemuExitCode};
-use blog_os::fat32::{Fat32, MemoryDisk, DirectoryEntry};
 
 #[test_case]
 fn invalid_cluster_panics() {
-    serial_println!("should_panic::invalid_cluster...");
-    let disk = MemoryDisk::new();
-    let mut fs = Fat32::new(disk).expect("fs");
+    blog_os::serial_println!("should_panic::invalid_cluster...");
+    let disk = blog_os::fat32::MemoryDisk::new();
+    let mut fs = blog_os::fat32::Fat32::new(disk).expect("fs");
     // invalid file with cluster 99 to trigger panic
-    let entry = DirectoryEntry {
+    let entry = blog_os::fat32::DirectoryEntry {
         name: *b"BADFILE BIN", // 8.3 filename padded to 11 bytes
         attr: 0x20,
         first_cluster: 99,
         size: 1,
     };
     let _ = fs.open_file(&entry);
-    serial_println!("[test did not panic]");
-    exit_qemu(QemuExitCode::Failed);
+    blog_os::serial_println!("[test did not panic]");
+    blog_os::exit_qemu(blog_os::QemuExitCode::Failed);
 }
