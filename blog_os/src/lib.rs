@@ -10,7 +10,6 @@
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
-#![reexport_test_harness_main = "test_main"]
 
 // On active alloc_error_handler **seulement** si on n'est PAS en oom_integration.
 #![cfg_attr(not(feature = "oom_integration"), feature(alloc_error_handler))]

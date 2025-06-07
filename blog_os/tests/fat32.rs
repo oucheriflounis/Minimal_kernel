@@ -5,11 +5,12 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
+extern crate blog_os;
 
+use core::panic::PanicInfo;
 use blog_os::fat32::{Fat32, MemoryDisk};
 use blog_os::{test_panic_handler};
 use alloc::vec::Vec;
-use core::panic::PanicInfo;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {

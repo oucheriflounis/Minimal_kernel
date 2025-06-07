@@ -5,8 +5,8 @@
 #![reexport_test_harness_main = "test_main"]
 #![feature(alloc_error_handler)]
 
-extern crate alloc;
 extern crate blog_os;
+extern crate alloc;
 
 use core::panic::PanicInfo;
 use alloc::boxed::Box;
