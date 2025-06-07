@@ -4,13 +4,8 @@
 #![test_runner(blog_os::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-extern crate alloc;
 extern crate blog_os;
-
 use core::panic::PanicInfo;
-use blog_os::fat32::{Fat32, MemoryDisk};
-use blog_os::{test_panic_handler};
-use alloc::vec::Vec;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
@@ -20,8 +15,10 @@ pub extern "C" fn _start() -> ! {
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    test_panic_handler(info)
+    blog_os::test_panic_handler(info)
 }
+
+use blog_os::fat32::{Fat32, MemoryDisk};
 
 #[test_case]
 fn read_root_dir_test() {

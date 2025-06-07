@@ -1,8 +1,7 @@
+#![cfg(not(test))]
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(blog_os::test_runner)]
-#![reexport_test_harness_main = "test_main"]
 
 use blog_os::println;
 use blog_os::fat32::{Fat32, MemoryDisk};

@@ -5,16 +5,21 @@
 #![reexport_test_harness_main = "test_main"]
 
 extern crate blog_os;
-
 use core::panic::PanicInfo;
-use blog_os::{exit_qemu, serial_println, QemuExitCode};
-use blog_os::fat32::{Fat32, MemoryDisk, DirectoryEntry};
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
     test_main();
     loop {}
 }
+
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    blog_os::test_panic_handler(info)
+}
+
+use blog_os::{exit_qemu, serial_println, QemuExitCode};
+use blog_os::fat32::{Fat32, MemoryDisk, DirectoryEntry};
 
 #[test_case]
 fn invalid_cluster_panics() {
@@ -31,11 +36,4 @@ fn invalid_cluster_panics() {
     let _ = fs.open_file(&entry);
     serial_println!("[test did not panic]");
     exit_qemu(QemuExitCode::Failed);
-}
-
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    serial_println!("[ok]");
-    exit_qemu(QemuExitCode::Success);
-   
 }
