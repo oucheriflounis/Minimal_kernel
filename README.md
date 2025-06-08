@@ -1,143 +1,110 @@
 # Minimal_kernel
+ 
 
+Un mini-kernel bare-metal inspiré du tutoriel **“Writing an OS in Rust”**.  
+Il tient dans moins de 2 000 lignes de code et démontre :
 
-Un mini‑kernel bare‑metal en Rust **`no_std`**, basé sur le tutoriel “Writing an OS in Rust” de Philipp Oppermann, avec :
-
-- Gestion VGA text mode (`src/vga_buffer.rs`)  
-- Sortie série (`src/serial.rs`)  
-- Slab allocator global `no_std` pour petits blocs (16 – 128 octets) (`src/allocator.rs`)  
-- Harness de tests personnalisés + QEMU + `bootimage`  
+* un **slab-allocator global** (16 – 128 o)  
+* un **lecteur FAT32** en mémoire (boot-sector + chaîne de clusters)  
+* un **harness de tests** personnalisé qui boote réellement le noyau sous QEMU  
+* l’affichage VGA texte couleur et la sortie série COM1  
+* une compilation **Clippy-clean** (0 warning) et des tests verts
 
 ---
 
 ## Arborescence
 
-
 ```
 
 .
-├── Cargo.lock
-├── Cargo.toml
-├── README.md
-├── Global Allocator Project Report.markdown
-├── src
-│   ├── allocator.rs
-│   ├── lib.rs
-│   ├── main.rs
-│   ├── serial.rs
-│   └── vga_buffer.rs
-├── tests
-│   ├── basic_boot.rs
-│   ├── oom.rs
-│   └── should_panic.rs
-└── x86_64-blog_os.json
+├── .cargo/config.toml      # cible + linker
+├── x86\_64-blog\_os.json     # triple custom
+├── Cargo.toml  Cargo.lock
+├── src/
+│   ├── allocator.rs   fat32.rs
+│   ├── lib.rs         main.rs
+│   ├── serial.rs      vga\_buffer.rs
+│   └── …
+└── tests/
+├── basic\_boot.rs  fat32.rs
+├── oom.rs         should\_panic.rs
 
-
-```
+````
+:contentReference[oaicite:3]{index=3}
 
 ---
 
-## Prérequis
+## 🔧 Prérequis
 
-- Rust **nightly** (≥ 1.88.0‑nightly)  
-- Cible custom : `rustup target add x86_64-blog_os.json`  
-- `cargo‑bootimage` (installé via `cargo install bootimage`)  
-- QEMU (≥ 4.2)
+| Outil | Version min. | Installation |
+|-------|--------------|--------------|
+| **Rust nightly** | 1.88.0-nightly | `rustup toolchain install nightly` |
+| **bootimage** | récent | `cargo install bootimage` |
+| **QEMU (x86_64)** | ≥ 4.x | paquet distro ou site officiel |
+
+Le fichier `.cargo/config.toml` fixe la cible et le linker ; aucune autre
+configuration n’est nécessaire.
 
 ---
 
-## Configuration `.cargo/config.toml`
+## 🚀 Démarrer
 
-```toml
-[unstable]
-build-std = ["core", "compiler_builtins"]
-build-std-features = ["compiler-builtins-mem"]
+```bash
+# cloner
+git clone https://github.com/oucheriflounis/test_gpt.git
+cd test_gpt
 
-[build]
-target = "x86_64-blog_os.json"
+# générer l’image
+cargo +nightly bootimage --features alloc
 
-[target.'cfg(target_os = "none")']
-runner = "bootimage runner"
+# lancer QEMU
+qemu-system-x86_64 \
+  -drive format=raw,file=target/x86_64-blog_os/debug/bootimage-blog_os.bin \
+  -serial stdio -display none
+````
 
-```
+---
 
-----------
+## 🧪 Tests & lint
 
-## Compilation & exécution
+| Commande                                                   | Effet                                |
+| ---------------------------------------------------------- | ------------------------------------ |
+| `cargo test --target x86_64-blog_os.json --no-run`         | compile tous les tests d’intégration |
+| `cargo clippy --target x86_64-blog_os.json -- -D warnings` | aucun warning autorisé               |
 
-1.  **Compiler l’image**
-    
-    ```bash
-    cargo +nightly bootimage --features alloc --target x86_64-blog_os.json
-    
-    ```
-    
-    produit :  
-    `target/x86_64-blog_os/debug/bootimage-blog_os.bin`
-    
-2.  **Lancer dans QEMU**
-    
-    ```bash
-    qemu-system-x86_64 \
-      -drive format=raw,file=target/x86_64-blog_os/debug/bootimage-blog_os.bin \
-      -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-      -serial stdio -display none
-    
-    ```
-    
+`tests/basic_boot.rs` vérifie que le noyau boote et renvoie 0x10 à QEMU ;
+`tests/oom.rs` déclenche volontairement un OOM ; `tests/fat32.rs` lit le
+répertoire racine et un fichier `HELLO.TXT`.
 
-----------
+---
 
-## Tests
+## 📚 Détails par module
 
--   **Unitaire & d’intégration** via `cargo xtest` (alias `cargo test`):
-    
-    ```bash
-    cargo +nightly test \
-      --features alloc,oom_integration \
-      --target x86_64-blog_os.json
-    
-    ```
-    
--   Le runner QEMU exit code 0x10 indique succès, 0x11 échec.
-    
+| Fichier                 | Fonctions clés                                                                                                    | Rôle                                                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **`src/allocator.rs`**  | `Slab::uninit`, `SimpleAllocator::{new,init}`, `alloc`, `dealloc`                                                 | Implémente `GlobalAlloc` : 4 slabs (16 / 32 / 64 / 128 o). Le bitmap libre est stocké en tête de slab.          |
+| **`src/fat32.rs`**      | `BootSector::parse`, `cluster_to_lba`, `read_fat_entry`, `read_cluster_chain`, `read_root_directory`, `open_file` | Lecture FAT32 : convertit cluster⇄LBA, suit la chaîne jusqu’à `0x0FFF_FFF8`. Retourne un `Vec<DirectoryEntry>`. |
+| **`src/vga_buffer.rs`** | `Writer::write_byte`, `println!`                                                                                  | Écriture couleur 80×25, scroll automatique.                                                                     |
+| **`src/serial.rs`**     | `serial_print!`, `serial_println!`                                                                                | Macros de debug vers COM1 (I/O-port 0x3F8).                                                                     |
+| **`src/lib.rs`**        | `test_runner`, `test_main`, `test_panic_handler`                                                                  | Exporte le runner utilisé par tous les tests `no_std`.                                                          |
+| **`src/main.rs`**       | `_start`                                                                                                          | Point d’entrée du kernel : init allocateur, affiche “Hello World”, spin-loop.                                   |
 
-----------
+Le rapport détaillé sur l’allocateur se trouve dans
+`Global Allocator Project Report.markdown` .
 
-## Features
+---
 
--   `alloc`  
-    Active le slab allocator global (`#[global_allocator]`) et les tests `Box`, `Vec`, etc.
-    
--   `oom_integration`  
-    Active les tests d’intégration OOM (`tests/oom.rs`) qui redéfinissent `#[alloc_error_handler]`.
-    
+## ⚙️ Features Cargo
 
-----------
+* **`alloc`** — active l’allocateur global et les tests utilisant `Vec` / `Box`.
+* **`oom_integration`** — compile `tests/oom.rs`, redéfinit
+  `#[alloc_error_handler]`.
 
-## Conception de l’allocateur
+---
+## 🙏 Sources
 
-Voir `Global Allocator Project Report.markdown` pour :
+* Philipp Oppermann — *Writing an OS in Rust*
+* *The Rustonomicon* — chapitre allocateurs
+* *Embedded Rust Book* — panic/alloc handlers
 
--   découpage du heap en 4 slabs (16–128 o)
-    
--   calcul de `slab_count`
-    
--   init paresseuse, protections `Mutex`
-    
--   contraintes & évolutions
-    
-
-----------
-
-## Sources & tutoriels
-
--   **Writing an OS in Rust** – Philipp Oppermann  
-    [https://os.phil-opp.com/](https://os.phil-opp.com/)
-    
--   **The Rustonomicon** – allocators & `unsafe`  
-    [https://doc.rust-lang.org/nomicon/allocators.html](https://doc.rust-lang.org/nomicon/allocators.html)
-    
--   **Embedded Rust Book** – `no_std`, panic/alloc handlers  
-    [https://docs.rust-embedded.org/book/](https://docs.rust-embedded.org/book/)
-    
+---
